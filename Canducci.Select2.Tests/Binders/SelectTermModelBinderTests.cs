@@ -42,7 +42,7 @@ namespace Canducci.Select2.Tests.Binders
         [Fact]
         public async Task BindModelAsync_WithMissingValues_ShouldUseNullAndZeroDefaults()
         {
-            DefaultModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>());
+            ModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>());
 
             await new SelectTermModelBinder().BindModelAsync(context);
 
@@ -63,7 +63,7 @@ namespace Canducci.Select2.Tests.Binders
         [InlineData("2147483648", 0)]
         public async Task BindModelAsync_WithPageValue_ShouldParseOrDefault(string pageValue, int expectedPage)
         {
-            DefaultModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
+            ModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
             {
                 ["page"] = pageValue
             });
@@ -77,7 +77,7 @@ namespace Canducci.Select2.Tests.Binders
         [Fact]
         public async Task BindModelAsync_WithMultipleValues_ShouldUseFirstValue()
         {
-            DefaultModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
+            ModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
             {
                 ["term"] = new StringValues(new[] { "first", "second" }),
                 ["page"] = new StringValues(new[] { "2", "5" })
