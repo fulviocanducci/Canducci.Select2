@@ -1,0 +1,52 @@
+name: Build and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    name: Build, test, pack and publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore and run tests
+        run: dotnet test Canducci.Select2.Tests/Canducci.Select2.Tests.csproj --configuration Release
+
+      - name: Extract package version from tag
+        id: version
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release tag: $GITHUB_REF_NAME. Expected format: v1.2.3 or v1.2.3-rc.1."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Pack NuGet package
+        run: dotnet pack Canducci.Select2/Canducci.Select2.csproj --configuration Release --output ./artifacts -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: NuGet login (Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: canducci
+
+      - name: Publish package to NuGet
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
