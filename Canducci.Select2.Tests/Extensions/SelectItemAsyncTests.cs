@@ -201,7 +201,7 @@ namespace Canducci.Select2.Tests.Extensions
 
             await query.ToSelectItemAsync(x => x.Id, x => x.Name);
 
-            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            MethodCallExpression select = Assert.IsAssignableFrom<MethodCallExpression>(provider.LastCreatedExpression);
             Assert.Equal(nameof(Queryable.Select), select.Method.Name);
             UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
             LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
@@ -222,7 +222,7 @@ namespace Canducci.Select2.Tests.Extensions
 
             await query.ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, x => x.IsDisabled);
 
-            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            MethodCallExpression select = Assert.IsAssignableFrom<MethodCallExpression>(provider.LastCreatedExpression);
             UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
             LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
             NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
@@ -239,13 +239,13 @@ namespace Canducci.Select2.Tests.Extensions
 
             await query.ToSelectItemAsync(x => x.Id, x => x.Name, new[] { 1, 3 }, new[] { 2, 3 });
 
-            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            MethodCallExpression select = Assert.IsAssignableFrom<MethodCallExpression>(provider.LastCreatedExpression);
             UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
             LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
             NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
 
-            Assert.Equal(nameof(Enumerable.Contains), Assert.IsType<MethodCallExpression>(projection.Arguments[2]).Method.Name);
-            Assert.Equal(nameof(Enumerable.Contains), Assert.IsType<MethodCallExpression>(projection.Arguments[3]).Method.Name);
+            Assert.Equal(nameof(Enumerable.Contains), Assert.IsAssignableFrom<MethodCallExpression>(projection.Arguments[2]).Method.Name);
+            Assert.Equal(nameof(Enumerable.Contains), Assert.IsAssignableFrom<MethodCallExpression>(projection.Arguments[3]).Method.Name);
         }
 
         private static string ThrowDescription()
