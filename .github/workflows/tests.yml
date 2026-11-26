@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+      - "tests/**"
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore
+        run: dotnet restore Canducci.Select2.slnx
+
+      - name: Build
+        run: dotnet build Canducci.Select2.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Canducci.Select2.Tests/Canducci.Select2.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=select2-tests.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: select2-test-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: ignore
