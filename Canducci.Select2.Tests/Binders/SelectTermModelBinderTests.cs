@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Canducci.Select2;
 using Canducci.Select2.Binders;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,7 +18,7 @@ namespace Canducci.Select2.Tests.Binders
         [Fact]
         public async Task BindModelAsync_WithAllQueryValues_ShouldBindSelectTerm()
         {
-            DefaultModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
+            ModelBindingContext context = CreateBindingContext(new Dictionary<string, StringValues>
             {
                 ["term"] = "fulvio",
                 ["q"] = "fulvio",
@@ -97,9 +98,9 @@ namespace Canducci.Select2.Tests.Binders
             await Assert.ThrowsAsync<System.ArgumentNullException>(() => binder.BindModelAsync(null));
         }
 
-        private static DefaultModelBindingContext CreateBindingContext(IDictionary<string, StringValues> values)
+        private static ModelBindingContext CreateBindingContext(IDictionary<string, StringValues> values)
         {
-            QueryCollection query = new QueryCollection(values);
+            QueryCollection query = new QueryCollection(new Dictionary<string, StringValues>(values));
             QueryStringValueProvider valueProvider = new QueryStringValueProvider(BindingSource.Query, query, CultureInfo.InvariantCulture);
             EmptyModelMetadataProvider metadataProvider = new EmptyModelMetadataProvider();
             ModelMetadata metadata = metadataProvider.GetMetadataForType(typeof(ISelectTerm));
