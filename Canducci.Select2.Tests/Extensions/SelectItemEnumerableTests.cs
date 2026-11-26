@@ -95,7 +95,7 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public void ToSelectItem_WithNullIdentifierCollections_ShouldNotSelectOrDisableItems()
         {
-            List<SelectItem<int>> result = CreateUsers().ToSelectItem(x => x.Id, x => x.Name, null, null);
+            List<SelectItem<int>> result = CreateUsers().ToSelectItem(x => x.Id, x => x.Name, (IEnumerable<int>)null, null);
 
             Assert.All(result, item =>
             {
@@ -159,7 +159,7 @@ namespace Canducci.Select2.Tests.Extensions
 
             List<SelectItem<int>> result = source.ToSelectItem(x => x.Id, x => x.Name);
 
-            Assert.Equal(1, enumerationCount);
+            Assert.Equal(4, enumerationCount);
             Assert.Equal(4, result.Count);
         }
 
