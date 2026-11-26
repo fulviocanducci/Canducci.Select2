@@ -1,11 +1,10 @@
+using Canducci.Select2.Extensions;
+using Canducci.Select2.Tests.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Canducci.Select2;
-using Canducci.Select2.Extensions;
-using Canducci.Select2.Tests.Models;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Canducci.Select2.Tests.Extensions
