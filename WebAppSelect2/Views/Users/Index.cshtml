@@ -1,0 +1,41 @@
+﻿@{
+}
+<div class="rows">
+    <div class="col-md-12">
+        <select id="selectUser"></select>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        let base = {
+            placeholder: 'Digite o nome',
+            allowClear: true,
+            width: "100%",
+            minimumInputLength: 2,
+            language: "pt-BR",
+            theme: "bootstrap-5",
+            containerCssClass: "select2--small",
+            dropdownCssClass: "select2--small",
+            selectionCssClass: "select2--small",
+            dropdownParent: null,
+            ajax: {
+                url: "/users/find",
+                crossDomain: true,
+                dataType: 'json',
+                method: 'POST'
+                /*,
+                data: function (params) {
+                    var query = {
+                        term: params.term,
+                        q: params.term,
+                        type: params._type,                        
+                    }
+                    return query;
+                }*/
+            }
+        };      
+        $(function() {
+            $("#selectUser").select2(base);
+        });
+    </script>
+}

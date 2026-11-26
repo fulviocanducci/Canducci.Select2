@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Canducci.Select2/Canducci.Select2.csproj" />
+  <Project Path="WebAppSelect2/WebAppSelect2.csproj" Id="f4bf7303-79d0-4340-ab41-c69e9180c346" />
+</Solution>

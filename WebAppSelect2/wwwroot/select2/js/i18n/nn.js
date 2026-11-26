@@ -1,0 +1,3 @@
+/*! Select2 4.2.0 | https://github.com/select2/select2/blob/master/LICENSE.md */
+
+!function(){if(jQuery&&jQuery.fn&&jQuery.fn.select2&&jQuery.fn.select2.amd)var e=jQuery.fn.select2.amd;e.define("select2/i18n/nn",[],function(){return{errorLoading:function(){return"Kunne ikkje hente resultat."},inputTooLong:function(e){return"Fjern "+(e.input.length-e.maximum)+" teikn"},inputTooShort:function(e){return"Skriv inn "+(e.minimum-e.input.length)+" teikn til"},loadingMore:function(){return"Lastar fleire resultat …"},maximumSelected:function(e){return"Du kan velje maks "+e.maximum+" element"},noResults:function(){return"Ingen treff"},searching:function(){return"Søkjer …"},removeAllItems:function(){return"Fjern alle element"}}}),e.define,e.require}();
