@@ -34,6 +34,23 @@ jobs:
       - name: Test
         run: dotnet test Canducci.Select2.Tests/Canducci.Select2.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=select2-tests.trx"
 
+      - name: Pack NuGet package
+        run: dotnet pack Canducci.Select2/Canducci.Select2.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Verify package contents
+        run: |
+          package=$(find ./artifacts -name "*.nupkg" -print -quit)
+          test -n "$package"
+          unzip -l "$package"
+          unzip -l "$package" | grep -q "README.md"
+          unzip -l "$package" | grep -q "images/icon.png"
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: canducci-select2-nuget-package
+          path: ./artifacts/*.nupkg
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
