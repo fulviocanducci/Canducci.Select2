@@ -98,7 +98,7 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public async Task ToSelectItemAsync_WithNullIdentifierCollections_ShouldNotSelectOrDisableItems()
         {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, null, null);
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, (IEnumerable<int>)null, null);
 
             Assert.All(result, item =>
             {
