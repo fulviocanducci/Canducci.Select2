@@ -54,8 +54,11 @@ namespace Canducci.Select2.Tests.Infrastructure
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
+        public Expression LastCreatedExpression { get; private set; }
+
         public IQueryable CreateQuery(Expression expression)
         {
+            LastCreatedExpression = expression;
             IQueryable query = _provider.CreateQuery(expression);
             Type wrapperType = typeof(TestAsyncQueryable<>).MakeGenericType(query.ElementType);
             return (IQueryable)Activator.CreateInstance(wrapperType, query);
@@ -63,6 +66,7 @@ namespace Canducci.Select2.Tests.Infrastructure
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
+            LastCreatedExpression = expression;
             return new TestAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
         }
 
