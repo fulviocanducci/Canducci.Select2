@@ -53,6 +53,21 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public void AddSelect2_BeforeAddMvcCore_ShouldRegisterSelectTermModelBinderProvider()
+        {
+            ServiceCollection services = new ServiceCollection();
+            services.AddSelect2();
+            services.AddMvcCore();
+
+            using (ServiceProvider provider = services.BuildServiceProvider())
+            {
+                MvcOptions options = provider.GetRequiredService<IOptions<MvcOptions>>().Value;
+
+                Assert.Contains(options.ModelBinderProviders, item => item is SelectTermModelBinderProvider);
+            }
+        }
+
+        [Fact]
         public void AddSelect2_WithNullServices_ShouldThrowArgumentNullException()
         {
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => Select2Extension.AddSelect2(null));
