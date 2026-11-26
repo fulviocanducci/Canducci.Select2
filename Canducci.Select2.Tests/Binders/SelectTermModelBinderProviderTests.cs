@@ -33,6 +33,18 @@ namespace Canducci.Select2.Tests.Binders
         }
 
         [Fact]
+        public void GetBinder_WithConcreteSelectTermMetadata_ShouldReturnNull()
+        {
+            EmptyModelMetadataProvider metadataProvider = new EmptyModelMetadataProvider();
+            ModelMetadata metadata = metadataProvider.GetMetadataForType(typeof(SelectTerm));
+            TestModelBinderProviderContext context = new TestModelBinderProviderContext(metadata, metadataProvider);
+
+            IModelBinder result = new SelectTermModelBinderProvider().GetBinder(context);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
         public void GetBinder_WithNullContext_ShouldThrowArgumentNullException()
         {
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new SelectTermModelBinderProvider().GetBinder(null));
