@@ -208,8 +208,8 @@ namespace Canducci.Select2.Tests.Extensions
             NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
 
             Assert.Equal(typeof(SelectItem<int>), projection.Type);
-            Assert.Equal("Id", Assert.IsType<MemberExpression>(projection.Arguments[0]).Member.Name);
-            Assert.Equal("Name", Assert.IsType<MemberExpression>(projection.Arguments[1]).Member.Name);
+            Assert.Equal("Id", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[0]).Member.Name);
+            Assert.Equal("Name", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[1]).Member.Name);
             Assert.Equal(ExpressionType.Constant, projection.Arguments[2].NodeType);
             Assert.Equal(ExpressionType.Constant, projection.Arguments[3].NodeType);
         }
@@ -227,8 +227,8 @@ namespace Canducci.Select2.Tests.Extensions
             LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
             NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
 
-            Assert.Equal("IsSelected", Assert.IsType<MemberExpression>(projection.Arguments[2]).Member.Name);
-            Assert.Equal("IsDisabled", Assert.IsType<MemberExpression>(projection.Arguments[3]).Member.Name);
+            Assert.Equal("IsSelected", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[2]).Member.Name);
+            Assert.Equal("IsDisabled", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[3]).Member.Name);
         }
 
         [Fact]
