@@ -193,6 +193,61 @@ namespace Canducci.Select2.Tests.Extensions
                 CreateQuery().ToSelectItemAsync(x => x.Id, x => ThrowDescription()));
         }
 
+        [Fact]
+        public async Task ToSelectItemAsync_ShouldProjectOnlyRequestedFields()
+        {
+            IQueryable<TestUser> query = CreateQuery();
+            TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
+
+            await query.ToSelectItemAsync(x => x.Id, x => x.Name);
+
+            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            Assert.Equal(nameof(Queryable.Select), select.Method.Name);
+            UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
+            LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
+            NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
+
+            Assert.Equal(typeof(SelectItem<int>), projection.Type);
+            Assert.Equal("Id", Assert.IsType<MemberExpression>(projection.Arguments[0]).Member.Name);
+            Assert.Equal("Name", Assert.IsType<MemberExpression>(projection.Arguments[1]).Member.Name);
+            Assert.Equal(ExpressionType.Constant, projection.Arguments[2].NodeType);
+            Assert.Equal(ExpressionType.Constant, projection.Arguments[3].NodeType);
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithSelectionExpressions_ShouldIncludeThemInProjection()
+        {
+            IQueryable<TestUser> query = CreateQuery();
+            TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
+
+            await query.ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, x => x.IsDisabled);
+
+            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
+            LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
+            NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
+
+            Assert.Equal("IsSelected", Assert.IsType<MemberExpression>(projection.Arguments[2]).Member.Name);
+            Assert.Equal("IsDisabled", Assert.IsType<MemberExpression>(projection.Arguments[3]).Member.Name);
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithIdentifierCollections_ShouldUseContainsInProjection()
+        {
+            IQueryable<TestUser> query = CreateQuery();
+            TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
+
+            await query.ToSelectItemAsync(x => x.Id, x => x.Name, new[] { 1, 3 }, new[] { 2, 3 });
+
+            MethodCallExpression select = Assert.IsType<MethodCallExpression>(provider.LastCreatedExpression);
+            UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
+            LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
+            NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
+
+            Assert.Equal(nameof(Enumerable.Contains), Assert.IsType<MethodCallExpression>(projection.Arguments[2]).Method.Name);
+            Assert.Equal(nameof(Enumerable.Contains), Assert.IsType<MethodCallExpression>(projection.Arguments[3]).Method.Name);
+        }
+
         private static string ThrowDescription()
         {
             throw new InvalidOperationException("Description failure.");
