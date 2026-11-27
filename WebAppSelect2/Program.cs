@@ -1,5 +1,7 @@
 using Canducci.Select2.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Refit;
+using WebAppSelect2.Models;
 
 namespace WebAppSelect2
 {
@@ -15,7 +17,14 @@ namespace WebAppSelect2
                 {
                     client.BaseAddress = new Uri("https://api.apimocker.com");
                 });
+            var configuration = builder.Configuration;
             builder.Services.AddSelect2();
+            builder.Services.AddDbContextPool<DataContext>(options =>
+            {
+                options
+                    .UseSqlServer(configuration.GetConnectionString("DatabaseConnection"))
+                    .LogTo(Console.Write);
+            });
             builder.Services.AddControllersWithViews();
             var app = builder.Build();
             if (!app.Environment.IsDevelopment())

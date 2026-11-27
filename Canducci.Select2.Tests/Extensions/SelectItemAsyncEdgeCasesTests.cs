@@ -1,12 +1,11 @@
+using Canducci.Select2.Extensions;
+using Canducci.Select2.Tests.Infrastructure;
+using Canducci.Select2.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Canducci.Select2;
-using Canducci.Select2.Extensions;
-using Canducci.Select2.Tests.Infrastructure;
-using Canducci.Select2.Tests.Models;
 using Xunit;
 
 namespace Canducci.Select2.Tests.Extensions

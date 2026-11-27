@@ -87,6 +87,34 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectedIdentifiers_ShouldSelectMatchingItems()
+        {
+            using (TestDbContext context = CreateContext())
+            {
+                List<SelectItem<long>> result = await context.Users
+                    .AsNoTracking()
+                    .ToSelectItemAsync(user => (long)user.Id, user => user.Name, new long[] { 1, 3 });
+
+                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+                Assert.All(result, item => Assert.False(item.Disabled));
+            }
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectedAndDisabledIdentifiers_ShouldSetBothStates()
+        {
+            using (TestDbContext context = CreateContext())
+            {
+                List<SelectItem<long>> result = await context.Users
+                    .AsNoTracking()
+                    .ToSelectItemAsync(user => (long)user.Id, user => user.Name, new long[] { 1, 3 }, new long[] { 2, 3 });
+
+                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+                Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+            }
+        }
+
+        [Fact]
         public void ToSelectItem_WithEntityFrameworkInMemory_ShouldMapAllItemsSynchronously()
         {
             using (TestDbContext context = CreateContext())
@@ -122,12 +150,26 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public void ToSelectItem_WithEntityFrameworkInMemoryAndSelectedIdentifiers_ShouldSelectMatchingItems()
+        {
+            using (TestDbContext context = CreateContext())
+            {
+                List<SelectItem<long>> result = context.Users
+                    .AsNoTracking()
+                    .ToSelectItem(user => (long)user.Id, user => user.Name, new long[] { 1, 3 });
+
+                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+                Assert.All(result, item => Assert.False(item.Disabled));
+            }
+        }
+
+        [Fact]
         public void ToSelectItem_WithEntityFrameworkInMemoryAndIdentifierCollections_ShouldApplyStatesInQuery()
         {
             using (TestDbContext context = CreateContext())
             {
-                List<SelectItem<int>> result = context.Users
-                    .ToSelectItem(user => user.Id, user => user.Name, new[] { 1, 3 }, new[] { 2, 3 });
+                List<SelectItem<long>> result = context.Users
+                    .ToSelectItem(user => (long)user.Id, user => user.Name, new long[] { 1, 3 }, new long[] { 2, 3 });
 
                 Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
                 Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));

@@ -291,13 +291,32 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.IsDisabled);
 ~~~
 
-### 4.3. Async provider requirement
+### 4.3. Select and disable using identifier collections
+
+Pass the selected identifiers as a collection; the disabled collection is optional:
+
+~~~csharp
+List<SelectItem<int>> selectedItems = await query.ToSelectItemAsync(
+    user => user.Id,
+    user => user.Name,
+    new[] { 1, 3 });
+
+List<SelectItem<int>> selectedAndDisabledItems = await query.ToSelectItemAsync(
+    user => user.Id,
+    user => user.Name,
+    new[] { 1, 3 },
+    new[] { 2, 3 });
+~~~
+
+These identifier collections are incorporated into the `IQueryable` projection and enumerated asynchronously. Ensure their element type matches the identifier type (for example, use `long[]` when the ID is `long`).
+
+### 4.4. Async provider requirement
 
 ToSelectItemAsync requires the source query to implement IAsyncEnumerable. Entity Framework Core queries support asynchronous enumeration. A plain List.AsQueryable() does not provide an asynchronous query source and will throw InvalidOperationException.
 
 If your data is already in memory, use the synchronous `IEnumerable<T>` overload instead.
 
-### 4.4. Synchronous IQueryable conversion
+### 4.5. Synchronous IQueryable conversion
 
 Use `ToSelectItem` when you need synchronous enumeration of an `IQueryable<T>`. It adds a projection to the provider and then enumerates synchronously, so filtering, ordering and pagination should still be applied before conversion.
 
@@ -335,8 +354,19 @@ Unlike `ToSelectItemAsync`, this overload does not require the provider to imple
 | ToSelectItemAsync(value, description) | Asynchronously converts query results. |
 | ToSelectItemAsync(value, description, selected) | Asynchronously determines selection with a Boolean expression. |
 | ToSelectItemAsync(value, description, selected, disabled) | Asynchronously determines both states with Boolean expressions. |
+| ToSelectItemAsync(value, description, selectedValues, disabledValues) | Asynchronously determines states using identifier collections; disabledValues is optional. |
 
-All conversion methods return `List<SelectItem<TId>>` (or a task containing that list for asynchronous methods).
+All conversion methods return `List<SelectItem<TId>>` (or a task containing that list for asynchronous methods). To return the Select2 response shape without changing those methods, wrap the list with `ToSelect2()`:
+
+~~~csharp
+List<SelectItem<long>> results = await query.ToSelectItemAsync(
+    item => item.Id,
+    item => item.Name);
+
+return Ok(results.ToSelect2());
+~~~
+
+The wrapper serializes as `{ "results": [...] }` with ASP.NET Core's default JSON settings. It contains only `results`; pagination metadata is not included.
 
 ## 6. Package information
 

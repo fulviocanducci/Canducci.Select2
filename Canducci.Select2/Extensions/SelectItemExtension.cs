@@ -1,9 +1,9 @@
+using Canducci.Select2.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Canducci.Select2.Utils;
 
 namespace Canducci.Select2.Extensions
 {
@@ -143,6 +143,12 @@ namespace Canducci.Select2.Extensions
             }
 
             IQueryable<SelectItem<TId>> query = SelectItemUtility.CreateSelectQuery(items, value, description, selected, disabled);
+            return SelectItemUtility.ToSelectItemAsyncCore(query);
+        }
+
+        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues = null)
+        {
+            IQueryable<SelectItem<TId>> query = SelectItemUtility.CreateSelectQueryByIdentifiers(items, value, description, selectedValues, disabledValues);
             return SelectItemUtility.ToSelectItemAsyncCore(query);
         }
 
