@@ -186,6 +186,65 @@ namespace Canducci.Select2.Tests.Extensions
             Assert.Equal(ExpressionType.Constant, projection.Arguments[3].NodeType);
         }
 
+        [Fact]
+        public async Task ToSelectItemAsync_WithOptionsAction_ShouldUseSelectedAndDisabledIdentifiers()
+        {
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(options =>
+            {
+                options.Value = x => x.Id;
+                options.Description = x => x.Name;
+                options.Selected = new[] { 1, 3 };
+                options.Disabled = new[] { 2, 3 };
+            });
+
+            Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+            Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithOptionsActionAndNoOptionalCollections_ShouldSetAllStatesToFalse()
+        {
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(options =>
+            {
+                options.Value = x => x.Id;
+                options.Description = x => x.Name;
+            });
+
+            Assert.All(result, item =>
+            {
+                Assert.False(item.Selected);
+                Assert.False(item.Disabled);
+            });
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithOptionsActionAndNullValue_ShouldThrowArgumentNullException()
+        {
+            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                CreateQuery().ToSelectItemAsync(options => options.Description = x => x.Name));
+
+            Assert.Equal("Value", exception.ParamName);
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithOptionsActionAndNullDescription_ShouldThrowArgumentNullException()
+        {
+            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                CreateQuery().ToSelectItemAsync(options => options.Value = x => x.Id));
+
+            Assert.Equal("Description", exception.ParamName);
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithNullOptionsAction_ShouldThrowArgumentNullException()
+        {
+            Action<SelectItemOptions<TestUser, int>> options = null;
+
+            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() => CreateQuery().ToSelectItemAsync(options));
+
+            Assert.Equal("options", exception.ParamName);
+        }
+
         private static string ThrowDescription()
         {
             throw new InvalidOperationException("Description failure.");

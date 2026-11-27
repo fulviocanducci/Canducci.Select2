@@ -10,7 +10,7 @@
 
 ## Version update — v2.0.0
 
-Version 2.0.0 simplifies asynchronous `IQueryable<T>` conversion to two overloads: conversion without selection and conversion using a Boolean selection expression. The previous selected-identifier, disabled-expression, `SelectItemValues<TId>`, and callback APIs have been removed.
+Version 2.0.0 provides asynchronous `IQueryable<T>` conversion through expression-based overloads and an options-based overload. The options-based overload accepts value and description expressions plus optional selected and disabled identifier collections.
 
 ## Features
 
@@ -18,7 +18,7 @@ Version 2.0.0 simplifies asynchronous `IQueryable<T>` conversion to two overload
 - Reads the Select2 request values term, q, _type and page.
 - Converts in-memory IEnumerable collections to SelectItem.
 - Converts asynchronous IQueryable sources with ToSelectItemAsync.
-- Supports selected items through a Boolean expression when converting asynchronous IQueryable sources.
+- Supports selected and disabled items through Boolean expressions or identifier collections when converting asynchronous IQueryable sources.
 - Leaves filtering, ordering and pagination under the application's control.
 
 ## Requirements
@@ -291,7 +291,34 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.IsDisabled);
 ~~~
 
-### 4.3. Async provider requirement
+### 4.3. Configure conversion with an Action
+
+When you want to configure the value, description, selected identifiers and disabled identifiers in one place, use the options-based overload. The `SelectItemOptions<T, TId>` class requires the `Value` and `Description` expressions. `Selected` and `Disabled` are optional identifier collections.
+
+~~~csharp
+List<SelectItem<int>> items = await query.ToSelectItemAsync(options =>
+{
+    options.Value = user => user.Id;
+    options.Description = user => user.Name;
+    options.Selected = new[] { 1, 3 };
+    options.Disabled = new[] { 2, 3 };
+});
+~~~
+
+You can omit either or both collections:
+
+~~~csharp
+List<SelectItem<int>> items = await query.ToSelectItemAsync(options =>
+{
+    options.Value = user => user.Id;
+    options.Description = user => user.Name;
+    options.Selected = new[] { 1 };
+});
+~~~
+
+If `Value` or `Description` is not configured, the method throws an `ArgumentNullException`. If `Selected` or `Disabled` is null, no item is marked for that state. The expressions and identifier collections are applied in the query projection, before asynchronous enumeration.
+
+### 4.4. Async provider requirement
 
 ToSelectItemAsync requires the source query to implement IAsyncEnumerable. Entity Framework Core queries support asynchronous enumeration. A plain List.AsQueryable() does not provide an asynchronous query source and will throw InvalidOperationException.
 
@@ -314,7 +341,7 @@ If your data is already in memory, use the synchronous ToSelectItem overload ins
 | Method | Description |
 | --- | --- |
 | ToSelectItemAsync(value, description) | Asynchronously converts query results. |
-| ToSelectItemAsync(value, description, selected) | Determines selection with a Boolean expression. |
+| ToSelectItemAsync(value, description, selected) | Determines selection with a Boolean expression. |\n| ToSelectItemAsync(options) | Configures value and description expressions plus optional selected and disabled identifier collections through an Action. |
 
 All conversion methods return List<SelectItem<TId>> (or a task containing that list for asynchronous methods).
 
