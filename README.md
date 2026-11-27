@@ -6,7 +6,38 @@
 
 **Canducci.Select2** provides ASP.NET Core MVC model binding for Select2 request parameters and extension methods to convert IEnumerable collections and asynchronous IQueryable queries into Select2-compatible items.
 
-> **Package status:** the initial package version is configured as 1.0.0, but it has not yet been published to NuGet.org. The version and download badges above will show live package information after publication. Until then, NuGet does not provide an official download count for this package.
+> **Package version:** the project is currently configured for version **1.0.1**. This version is a project/repository update; it is not considered published on NuGet.org until the package is actually pushed. The NuGet badges above show live package information after publication.
+
+## Version update — v1.0.1
+
+This update introduces factory methods for creating `SelectItemValues<TId>` instances and updates the asynchronous query documentation and examples to use the current API.
+
+### What's new
+
+- Adds `SelectItemValues<TId>.Create(IEnumerable<TId> selectedValues)` to create an options instance containing selected identifiers.
+- Adds `SelectItemValues<TId>.Create(IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues)` to create an options instance containing both selected and disabled identifiers.
+- Keeps `SetSelectValues` and `SetDisabledValues` available for fluent configuration.
+- Updates asynchronous `IQueryable<T>` examples to pass a `SelectItemValues<TId>` object instead of passing selected and disabled identifier collections as separate arguments.
+- Adds unit tests for both factory overloads and updates asynchronous and Entity Framework Core InMemory tests to exercise the factory methods.
+
+### Creating SelectItemValues
+
+Create an instance with selected identifiers only:
+
+~~~csharp
+SelectItemValues<int> options = SelectItemValues<int>.Create(
+    new[] { 1, 2, 3 });
+~~~
+
+Create an instance with selected and disabled identifiers:
+
+~~~csharp
+SelectItemValues<int> options = SelectItemValues<int>.Create(
+    new[] { 1, 2, 3 },
+    new[] { 4, 5 });
+~~~
+
+The first argument always represents selected identifiers. The optional second argument represents disabled identifiers. The factory methods assign the supplied collections to the corresponding properties; they do not execute a query or change the source collection.
 
 ## Features
 
@@ -15,6 +46,7 @@
 - Converts in-memory IEnumerable collections to SelectItem.
 - Converts asynchronous IQueryable sources with ToSelectItemAsync.
 - Supports selected and disabled items by identifier collections or Boolean expressions.
+- Provides SelectItemValues<TId> factory methods for reusable selected/disabled identifier configuration in asynchronous IQueryable conversion.
 - Leaves filtering, ordering and pagination under the application's control.
 
 ## Requirements
@@ -167,7 +199,7 @@ Only the item whose identifier is 2 is marked as selected.
 
 ### 3.3. Select and disable items using identifier collections
 
-This overload is useful when the selected and disabled identifiers come from another part of the application:
+The synchronous `IEnumerable<T>` overload continues to accept the selected and disabled collections directly:
 
 ~~~csharp
 int[] selectedIds = { 1, 3 };
@@ -268,18 +300,59 @@ The example applies the application's own filtering and pagination. ToSelectItem
 
 > **Important:** do not call ToList() or ToListAsync() before ToSelectItemAsync when you want asynchronous query enumeration. Calling ToList() first turns the operation into an in-memory collection workflow.
 
-### 4.1. Select and disable by identifier collections
+### 4.1. Select and disable by identifier collections with SelectItemValues
+
+For asynchronous `IQueryable<T>` conversion, selected and disabled identifiers are supplied through a `SelectItemValues<TId>` instance. This options object groups the two collections into a single argument.
+
+**Select items only:**
 
 ~~~csharp
-int[] selectedIds = { 10, 20 };
-int[] disabledIds = { 30 };
+SelectItemValues<int> options = SelectItemValues<int>.Create(
+    new[] { 10, 20 });
 
 List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.Id,
     user => user.Name,
-    selectedIds,
-    disabledIds);
+    options);
 ~~~
+
+**Select and disable items:**
+
+~~~csharp
+SelectItemValues<int> options = SelectItemValues<int>.Create(
+    new[] { 10, 20 },
+    new[] { 30 });
+
+List<SelectItem<int>> items = await query.ToSelectItemAsync(
+    user => user.Id,
+    user => user.Name,
+    options);
+~~~
+
+The first collection contains identifiers to select; the second contains identifiers to disable. An identifier may be present in both collections, in which case the resulting item is both selected and disabled.
+
+You can also configure the object using the fluent methods:
+
+~~~csharp
+SelectItemValues<int> options = new SelectItemValues<int>()
+    .SetSelectValues(new[] { 10, 20 })
+    .SetDisabledValues(new[] { 30 });
+~~~
+
+Or use the configuration callback overload:
+
+~~~csharp
+List<SelectItem<int>> items = await query.ToSelectItemAsync(
+    user => user.Id,
+    user => user.Name,
+    options =>
+    {
+        options.SetSelectValues(new[] { 10, 20 });
+        options.SetDisabledValues(new[] { 30 });
+    });
+~~~
+
+The callback receives a new `SelectItemValues<TId>` instance. Configure whichever collections are needed; leaving one collection unset means that no items will receive that state.
 
 ### 4.2. Select and disable using Boolean expressions
 
@@ -299,8 +372,6 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.Name,
     user => user.IsSelected);
 ~~~
-
-The asynchronous overloads support the same selection options as ToSelectItem.
 
 ### 4.3. Async provider requirement
 
@@ -328,7 +399,8 @@ If your data is already in memory, use the synchronous ToSelectItem overload ins
 | ToSelectItemAsync(value, description, selectedValue) | Asynchronously converts and selects one identifier. |
 | ToSelectItemAsync(value, description, selected) | Determines selection with a Boolean expression. |
 | ToSelectItemAsync(value, description, selected, disabled) | Determines both states with Boolean expressions. |
-| ToSelectItemAsync(value, description, selectedValues, disabledValues) | Determines states using identifier collections. |
+| ToSelectItemAsync(value, description, options) | Determines selected and disabled states using SelectItemValues<TId>. |
+| ToSelectItemAsync(value, description, configureOptions) | Configures selected and disabled identifiers through an Action<SelectItemValues<TId>> callback. |
 
 All conversion methods return List<SelectItem<TId>> (or a task containing that list for asynchronous methods).
 
@@ -337,9 +409,8 @@ All conversion methods return List<SelectItem<TId>> (or a task containing that l
 | Property | Value |
 | --- | --- |
 | Package | Canducci.Select2 |
-| Initial package version | 1.0.0 (configured; not yet published) |
+| Current project version | 1.0.1 |
 | Target frameworks | .NET 8, .NET 9, .NET 10 and .NET 11 |
-| NuGet downloads | Not available until the first publication |
 | Repository | [GitHub](https://github.com/fulviocanducci/Canducci.Select2) |
 
 Live package information:
