@@ -281,7 +281,17 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.IsSelected);
 ~~~
 
-### 4.2. Async provider requirement
+### 4.2. Select and disable using Boolean expressions
+
+~~~csharp
+List<SelectItem<int>> items = await query.ToSelectItemAsync(
+    user => user.Id,
+    user => user.Name,
+    user => user.IsSelected,
+    user => user.IsDisabled);
+~~~
+
+### 4.3. Async provider requirement
 
 ToSelectItemAsync requires the source query to implement IAsyncEnumerable. Entity Framework Core queries support asynchronous enumeration. A plain List.AsQueryable() does not provide an asynchronous query source and will throw InvalidOperationException.
 

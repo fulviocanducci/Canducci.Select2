@@ -54,6 +54,25 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public async Task ToSelectItemAsync_WithSelectedAndDisabledExpressions_ShouldUseBothExpressionResults()
+        {
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, x => x.IsDisabled);
+
+            Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+            Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+        }
+
+        [Fact]
+        public async Task ToSelectItemAsync_WithNullDisabledExpression_ShouldThrowArgumentNullException()
+        {
+            Expression<Func<TestUser, bool>> disabled = null;
+
+            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() => CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, disabled));
+
+            Assert.Equal("disabled", exception.ParamName);
+        }
+
+        [Fact]
         public async Task ToSelectItemAsync_WithWhereQuery_ShouldEnumerateFilteredResults()
         {
             List<SelectItem<int>> result = await CreateQuery()
