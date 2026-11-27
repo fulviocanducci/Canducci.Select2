@@ -63,7 +63,7 @@ namespace Canducci.Select2.Extensions
         /// </summary>
         public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description)
         {
-            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, null);
+            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, null, null);
             return ToSelectItemAsyncCore(query);
         }
 
@@ -73,7 +73,22 @@ namespace Canducci.Select2.Extensions
             {
                 throw new ArgumentNullException(nameof(selected));
             }
-            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, selected);
+            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, selected, null);
+            return ToSelectItemAsyncCore(query);
+        }
+
+
+        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Expression<Func<T, bool>> selected, Expression<Func<T, bool>> disabled)
+        {
+            if (selected == null)
+            {
+                throw new ArgumentNullException(nameof(selected));
+            }
+            if (disabled == null)
+            {
+                throw new ArgumentNullException(nameof(disabled));
+            }
+            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, selected, disabled);
             return ToSelectItemAsyncCore(query);
         }
 
@@ -105,7 +120,7 @@ namespace Canducci.Select2.Extensions
             return sources.ToList();
         }
 
-        private static IQueryable<SelectItem<TId>> CreateSelectQuery<T, TId>(IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Expression<Func<T, bool>> selected)
+        private static IQueryable<SelectItem<TId>> CreateSelectQuery<T, TId>(IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Expression<Func<T, bool>> selected, Expression<Func<T, bool>> disabled)
         {
             if (items == null)
             {
@@ -120,6 +135,9 @@ namespace Canducci.Select2.Extensions
             Expression selectedBody = selected == null
                 ? Expression.Constant(false)
                 : ReplaceParameter(selected.Body, selected.Parameters[0], parameter);
+            Expression disabledBody = disabled == null
+                ? Expression.Constant(false)
+                : ReplaceParameter(disabled.Body, disabled.Parameters[0], parameter);
             var constructor = typeof(SelectItem<TId>).GetConstructor(new[]
             {
                 typeof(TId),
@@ -127,7 +145,7 @@ namespace Canducci.Select2.Extensions
                 typeof(bool),
                 typeof(bool)
             });
-            NewExpression projection = Expression.New(constructor, valueBody, descriptionBody, selectedBody, Expression.Constant(false));
+            NewExpression projection = Expression.New(constructor, valueBody, descriptionBody, selectedBody, disabledBody);
             Expression<Func<T, SelectItem<TId>>> selector = Expression.Lambda<Func<T, SelectItem<TId>>>(projection, parameter);
             return items.Select(selector);
         }
