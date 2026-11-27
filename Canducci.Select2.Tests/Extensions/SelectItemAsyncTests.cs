@@ -189,7 +189,7 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public async Task ToSelectItemAsync_WithOptionsAction_ShouldUseSelectedAndDisabledIdentifiers()
         {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(options =>
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync<TestUser, int>(options =>
             {
                 options.Value = x => x.Id;
                 options.Description = x => x.Name;
@@ -204,7 +204,7 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public async Task ToSelectItemAsync_WithOptionsActionAndNoOptionalCollections_ShouldSetAllStatesToFalse()
         {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(options =>
+            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync<TestUser, int>(options =>
             {
                 options.Value = x => x.Id;
                 options.Description = x => x.Name;
@@ -221,7 +221,7 @@ namespace Canducci.Select2.Tests.Extensions
         public async Task ToSelectItemAsync_WithOptionsActionAndNullValue_ShouldThrowArgumentNullException()
         {
             ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                CreateQuery().ToSelectItemAsync(options => options.Description = x => x.Name));
+                CreateQuery().ToSelectItemAsync<TestUser, int>(options => options.Description = x => x.Name));
 
             Assert.Equal("Value", exception.ParamName);
         }
@@ -230,7 +230,7 @@ namespace Canducci.Select2.Tests.Extensions
         public async Task ToSelectItemAsync_WithOptionsActionAndNullDescription_ShouldThrowArgumentNullException()
         {
             ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                CreateQuery().ToSelectItemAsync(options => options.Value = x => x.Id));
+                CreateQuery().ToSelectItemAsync<TestUser, int>(options => options.Value = x => x.Id));
 
             Assert.Equal("Description", exception.ParamName);
         }
