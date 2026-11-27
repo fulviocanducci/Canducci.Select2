@@ -24,6 +24,8 @@ namespace WebAppSelect2.Controllers
                 .Take(10)
                 .ToSelectItemAsync(x => x.Id, x => x.Name);
 
+
+
             //dataContext.Sources
             //    .AsNoTracking()
             //    .ToSelectItem(x => x.Id, x => x.Name, new[] { 1, 2 });
@@ -46,7 +48,7 @@ namespace WebAppSelect2.Controllers
             var listOfUser = await userApi.GetUsersAsync(selectTerm.Q);
             var a = Enumerable.Empty<int>();
             var b = Enumerable.Empty<int>();
-            return Ok(new { results = listOfUser.Results.ToSelectItem(x => x.Id, x => x.Name, a, b) });
+            return Ok(s.ToSelect2());
         }
     }
 }

@@ -3,11 +3,11 @@
         <LangVersion>8.0</LangVersion>
         <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
         <PackageId>Canducci.Select2</PackageId>
-        <PackageVersion>2.0.0</PackageVersion>
+        <PackageVersion>2.0.1</PackageVersion>
         <Title>Canducci.Select2</Title>
         <Authors>Fulvio Canducci</Authors>
         <Company>Canducci</Company>
-        <Description>ASP.NET Core MVC model binding for Select2 requests and extension methods to convert IEnumerable and asynchronous IQueryable sources into Select2 items.</Description>
+        <Description>ASP.NET Core MVC model binding for Select2 requests and extension methods to convert IEnumerable and synchronous or asynchronous IQueryable sources into Select2 items.</Description>
         <Copyright>Copyright © 2026 Fulvio Canducci</Copyright>
         <PackageProjectUrl>https://github.com/fulviocanducci/Canducci.Select2</PackageProjectUrl>
         <RepositoryUrl>https://github.com/fulviocanducci/Canducci.Select2</RepositoryUrl>
@@ -15,7 +15,7 @@
         <PackageTags>select2;aspnetcore;mvc;modelbinder;ienumerable;iqueryable;entityframeworkcore;dropdown;ajax</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>images/icon.png</PackageIcon>
-        <PackageReleaseNotes>Version 2.0.0: simplifies asynchronous IQueryable conversion to two overloads: no selection or a Boolean selected expression. Removes selected-identifier, disabled-state, and callback-based configuration APIs.</PackageReleaseNotes>
+        <PackageReleaseNotes>Version 2.0.1: adds synchronous IQueryable conversion, identifier collection overloads for synchronous and asynchronous IQueryable queries, and ToSelect2() response wrapping. Existing IEnumerable conversions remain supported.</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     </PropertyGroup>

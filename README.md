@@ -4,22 +4,26 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Canducci.Select2.svg)](https://www.nuget.org/packages/Canducci.Select2)
 [![Build and test](https://github.com/fulviocanducci/Canducci.Select2/actions/workflows/tests.yml/badge.svg)](https://github.com/fulviocanducci/Canducci.Select2/actions/workflows/tests.yml)
 
-**Canducci.Select2** provides ASP.NET Core MVC model binding for Select2 request parameters and extension methods to convert IEnumerable collections and asynchronous IQueryable queries into Select2-compatible items.
+**Canducci.Select2** provides ASP.NET Core MVC model binding for Select2 request parameters and extensions to convert in-memory collections and synchronous or asynchronous `IQueryable<T>` queries into Select2-compatible results.
 
-> **Package version:** the project is currently configured for version **2.0.0**. This version is a project/repository update; it is not considered published on NuGet.org until the package is actually pushed. The NuGet badges above show live package information after publication.
+> **Release version:** this repository is being prepared for **v2.0.1**. The release workflow publishes the NuGet package when the `v2.0.1` tag is pushed and its checks succeed. The NuGet badges show the published package state.
 
-## Version update — v2.0.0
+## What's new in v2.0.1
 
-Version 2.0.0 provides asynchronous `IQueryable<T>` conversion through expression-based overloads. Selection and disabled states are supplied through Boolean expressions.
+- Adds synchronous `IQueryable<T>.ToSelectItem` overloads.
+- Adds identifier-collection overloads for synchronous and asynchronous `IQueryable<T>` conversions.
+- Adds `ToSelect2()` to wrap converted items in a `{ results: [...] }` response.
+- Keeps the existing `IEnumerable<T>` conversion API.
 
 ## Features
 
-- Automatic model binding for ISelectTerm in ASP.NET Core MVC.
-- Reads the Select2 request values term, q, _type and page.
-- Converts in-memory IEnumerable collections to SelectItem.
-- Converts asynchronous IQueryable sources with ToSelectItemAsync.
-- Supports selected and disabled items through Boolean expressions when converting asynchronous IQueryable sources.
-- Leaves filtering, ordering and pagination under the application's control.
+- Automatic model binding for `ISelectTerm` in ASP.NET Core MVC.
+- Reads the Select2 request values `term`, `q`, `_type` and `page`.
+- Converts in-memory `IEnumerable<T>` collections to `SelectItem<TId>`.
+- Converts `IQueryable<T>` sources synchronously with `ToSelectItem` or asynchronously with `ToSelectItemAsync`.
+- Supports selected and disabled states using Boolean expressions or identifier collections.
+- Wraps a list in the Select2 `{ results: [...] }` response shape with `ToSelect2()`.
+- Leaves filtering, ordering, page size and pagination decisions under the application's control.
 
 ## Requirements
 
@@ -256,19 +260,12 @@ public class UsersController : Controller
             user => user.Id,
             user => user.Name);
 
-        return Json(new
-        {
-            results,
-            pagination = new
-            {
-                more = results.Count == pageSize
-            }
-        });
+        return Ok(results.ToSelect2());
     }
 }
 ~~~
 
-The example applies the application's own filtering and pagination. ToSelectItemAsync only converts the items returned by that query; it does not decide how many records belong on a page or whether another page exists.
+The example applies the application's own filtering and pagination to the query. `ToSelectItemAsync` converts the selected rows, and `ToSelect2()` wraps them as `{ "results": [...] }`. Pagination metadata is not added by the library.
 
 > **Important:** do not call ToList() or ToListAsync() before ToSelectItemAsync when you want asynchronous query enumeration. Calling ToList() first turns the operation into an in-memory collection workflow.
 
@@ -293,22 +290,22 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
 
 ### 4.3. Select and disable using identifier collections
 
-Pass the selected identifiers as a collection; the disabled collection is optional:
+Pass selected IDs as the third argument; optionally pass disabled IDs as the fourth. The ID collection element type must match the type returned by the `value` expression:
 
 ~~~csharp
-List<SelectItem<int>> selectedItems = await query.ToSelectItemAsync(
-    user => user.Id,
-    user => user.Name,
-    new[] { 1, 3 });
+List<SelectItem<long>> selectedItems = await query.ToSelectItemAsync(
+    source => source.Id,
+    source => source.Name,
+    new long[] { 1, 3 });
 
-List<SelectItem<int>> selectedAndDisabledItems = await query.ToSelectItemAsync(
-    user => user.Id,
-    user => user.Name,
-    new[] { 1, 3 },
-    new[] { 2, 3 });
+List<SelectItem<long>> selectedAndDisabledItems = await query.ToSelectItemAsync(
+    source => source.Id,
+    source => source.Name,
+    new long[] { 1, 3 },
+    new long[] { 2, 3 });
 ~~~
 
-These identifier collections are incorporated into the `IQueryable` projection and enumerated asynchronously. Ensure their element type matches the identifier type (for example, use `long[]` when the ID is `long`).
+The collections become `Contains` predicates in the query projection. With no disabled collection, `Disabled` is false for every result.
 
 ### 4.4. Async provider requirement
 
@@ -318,17 +315,32 @@ If your data is already in memory, use the synchronous `IEnumerable<T>` overload
 
 ### 4.5. Synchronous IQueryable conversion
 
-Use `ToSelectItem` when you need synchronous enumeration of an `IQueryable<T>`. It adds a projection to the provider and then enumerates synchronously, so filtering, ordering and pagination should still be applied before conversion.
+Use `ToSelectItem` when synchronous enumeration is required. The projection is composed into the `IQueryable` and then synchronously enumerated. Apply filtering, ordering and pagination before conversion.
 
 ~~~csharp
-List<SelectItem<int>> results = query.ToSelectItem(
-    user => user.Id,
-    user => user.Name,
-    user => user.IsSelected,
-    user => user.IsDisabled);
+List<SelectItem<long>> selected = query.ToSelectItem(
+    source => source.Id,
+    source => source.Name,
+    selectedValue: 1L);
+
+List<SelectItem<long>> selectedAndDisabled = query.ToSelectItem(
+    source => source.Id,
+    source => source.Name,
+    selectedValues: new long[] { 1, 2 },
+    disabledValues: new long[] { 1, 3 });
 ~~~
 
-Unlike `ToSelectItemAsync`, this overload does not require the provider to implement `IAsyncEnumerable`. Synchronous database calls block the calling thread; prefer `ToSelectItemAsync` for request-handling code when your provider supports async operations.
+Boolean expressions are also supported when the state comes from the source model:
+
+~~~csharp
+List<SelectItem<long>> items = query.ToSelectItem(
+    source => source.Id,
+    source => source.Name,
+    source => source.Selected,
+    source => source.Disabled);
+~~~
+
+Unlike `ToSelectItemAsync`, synchronous enumeration does not require the provider to implement `IAsyncEnumerable`, but synchronous database calls block the calling thread. Prefer the async overloads for request handling when the provider supports asynchronous enumeration.
 
 ## 5. Available extension methods
 
@@ -373,7 +385,7 @@ The wrapper serializes as `{ "results": [...] }` with ASP.NET Core's default JSO
 | Property | Value |
 | --- | --- |
 | Package | Canducci.Select2 |
-| Current project version | 2.0.0 |
+| Release version configured in this repository | 2.0.1 |
 | Target frameworks | .NET 8, .NET 9, .NET 10 and .NET 11 |
 | Repository | [GitHub](https://github.com/fulviocanducci/Canducci.Select2) |
 
