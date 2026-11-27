@@ -2,10 +2,11 @@
 using Canducci.Select2.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using WebAppSelect2.Interfaces;
+using WebAppSelect2.Models;
 
 namespace WebAppSelect2.Controllers
 {
-    public class UsersController(IUserApi userApi) : Controller
+    public class UsersController(IUserApi userApi, DataContext dataContext) : Controller
     {
         public IActionResult Index()
         {
@@ -15,6 +16,12 @@ namespace WebAppSelect2.Controllers
         [HttpPost]
         public async Task<ActionResult> Find(ISelectTerm selectTerm)
         {
+            //var s = await dataContext
+            //    .Sources
+            //    .AsNoTracking()
+            //    .ToSelectItemAsync(x => x.Id, x => x.Name, SelectItemValues<int>.Create([10], [12]));
+
+
             var listOfUser = await userApi.GetUsersAsync(selectTerm.Q);
             var a = Enumerable.Empty<int>();
             var b = Enumerable.Empty<int>();
