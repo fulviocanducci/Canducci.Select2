@@ -86,9 +86,7 @@ namespace Canducci.Select2.Tests.Extensions
             {
                 IEnumerable<int> selectedValues = new[] { 1, 3 };
                 IEnumerable<int> disabledValues = new[] { 2, 3 };
-                SelectItemValues<int> options = new SelectItemValues<int>()
-                    .SetSelectValues(selectedValues)
-                    .SetDisabledValues(disabledValues);
+                SelectItemValues<int> options = SelectItemValues<int>.Create(selectedValues, disabledValues);
 
                 List<SelectItem<int>> result = await context.Users
                     .ToSelectItemAsync(user => user.Id, user => user.Name, options);
@@ -124,8 +122,7 @@ namespace Canducci.Select2.Tests.Extensions
         {
             using (TestDbContext context = CreateContext())
             {
-                SelectItemValues<int> options = new SelectItemValues<int>()
-                    .SetSelectValues(new[] { 2, 4 });
+                SelectItemValues<int> options = SelectItemValues<int>.Create(new[] { 2, 4 });
 
                 List<SelectItem<int>> result = await context.Users
                     .ToSelectItemAsync(user => user.Id, user => user.Name, options);

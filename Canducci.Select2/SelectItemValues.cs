@@ -19,6 +19,34 @@ namespace Canducci.Select2
         public IEnumerable<TId> DisabledValues { get; set; }
 
         /// <summary>
+        /// Creates a new instance with the identifiers of the items that should be selected.
+        /// </summary>
+        /// <param name="selectedValues">The selected item identifiers.</param>
+        /// <returns>A new instance containing the selected item identifiers.</returns>
+        public static SelectItemValues<TId> Create(IEnumerable<TId> selectedValues)
+        {
+            return new SelectItemValues<TId>
+            {
+                SelectedValues = selectedValues
+            };
+        }
+
+        /// <summary>
+        /// Creates a new instance with the identifiers of the items that should be selected or disabled.
+        /// </summary>
+        /// <param name="selectedValues">The selected item identifiers.</param>
+        /// <param name="disabledValues">The disabled item identifiers.</param>
+        /// <returns>A new instance containing the selected and disabled item identifiers.</returns>
+        public static SelectItemValues<TId> Create(IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues)
+        {
+            return new SelectItemValues<TId>
+            {
+                SelectedValues = selectedValues,
+                DisabledValues = disabledValues
+            };
+        }
+
+        /// <summary>
         /// Sets the identifiers of the items that should be selected.
         /// </summary>
         /// <param name="values">The selected item identifiers.</param>
