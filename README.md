@@ -6,7 +6,7 @@
 
 **Canducci.Select2** provides ASP.NET Core MVC model binding for Select2 request parameters and extension methods to convert IEnumerable collections and asynchronous IQueryable queries into Select2-compatible items.
 
-> **Package version:** the project is currently configured for version **1.0.1**. This version is a project/repository update; it is not considered published on NuGet.org until the package is actually pushed. The NuGet badges above show live package information after publication.
+> **Package version:** the project is currently configured for version **2.0.0**. This version is a project/repository update; it is not considered published on NuGet.org until the package is actually pushed. The NuGet badges above show live package information after publication.
 
 ## Version update — v2.0.0
 
@@ -18,8 +18,7 @@ Version 2.0.0 simplifies asynchronous `IQueryable<T>` conversion to two overload
 - Reads the Select2 request values term, q, _type and page.
 - Converts in-memory IEnumerable collections to SelectItem.
 - Converts asynchronous IQueryable sources with ToSelectItemAsync.
-- Supports selected and disabled items by identifier collections or Boolean expressions.
-- Provides SelectItemValues<TId> factory methods for reusable selected/disabled identifier configuration in asynchronous IQueryable conversion.
+- Supports selected items through a Boolean expression when converting asynchronous IQueryable sources.
 - Leaves filtering, ordering and pagination under the application's control.
 
 ## Requirements
@@ -282,7 +281,7 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
     user => user.IsSelected);
 ~~~
 
-### 4.3. Async provider requirement
+### 4.2. Async provider requirement
 
 ToSelectItemAsync requires the source query to implement IAsyncEnumerable. Entity Framework Core queries support asynchronous enumeration. A plain List.AsQueryable() does not provide an asynchronous query source and will throw InvalidOperationException.
 
