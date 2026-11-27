@@ -59,6 +59,19 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectedAndDisabledExpressions_ShouldUseBothExpressionResults()
+        {
+            using (TestDbContext context = CreateContext())
+            {
+                List<SelectItem<int>> result = await context.Users
+                    .ToSelectItemAsync(user => user.Id, user => user.Name, user => user.IsSelected, user => user.IsDisabled);
+
+                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+                Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+            }
+        }
+
+        [Fact]
         public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndWhereQuery_ShouldReturnFilteredItems()
         {
             using (TestDbContext context = CreateContext())
