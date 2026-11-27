@@ -63,12 +63,15 @@ namespace Canducci.Select2.Extensions
         /// </summary>
         public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description)
         {
-            return ToSelectItemAsync(items, value, description, (IEnumerable<TId>)null, null);
+            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, null, null);
+            return ToSelectItemAsyncCore(query);
         }
 
         public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, TId selectedValue)
         {
-            return ToSelectItemAsync(items, value, description, new[] { selectedValue }, null);
+            SelectItemValues<TId> options = new SelectItemValues<TId>()
+                .SetSelectValues(new[] { selectedValue });
+            return ToSelectItemAsync(items, value, description, options);
         }
 
         public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Expression<Func<T, bool>> selected)
@@ -95,12 +98,49 @@ namespace Canducci.Select2.Extensions
             return ToSelectItemAsyncCore(query);
         }
 
-        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues = null)
+        /// <summary>
+        /// Asynchronously projects the query into select items, marking items whose identifiers are present in the configured selected and disabled value collections.
+        /// </summary>
+        /// <typeparam name="T">The entity type contained in the query.</typeparam>
+        /// <typeparam name="TId">The type of the identifier used by the select items.</typeparam>
+        /// <param name="items">The queryable source of entities.</param>
+        /// <param name="value">An expression that selects the identifier from each entity.</param>
+        /// <param name="description">An expression that selects the display text from each entity.</param>
+        /// <param name="options">The selected and disabled identifier collections. A null collection is treated as empty.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the projected select items.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="items"/> or <paramref name="options"/> is null.</exception>
+        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, SelectItemValues<TId> options)
         {
-            Expression<Func<T, bool>> selected = CreateContainsExpression(value, selectedValues);
-            Expression<Func<T, bool>> disabled = CreateContainsExpression(value, disabledValues);
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            Expression<Func<T, bool>> selected = CreateContainsExpression(value, options.SelectedValues);
+            Expression<Func<T, bool>> disabled = CreateContainsExpression(value, options.DisabledValues);
             IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, value, description, selected, disabled);
             return ToSelectItemAsyncCore(query);
+        }
+
+        /// <summary>
+        /// Asynchronously projects the query into select items, configuring the selected and disabled identifier collections through an action.
+        /// </summary>
+        /// <typeparam name="T">The entity type contained in the query.</typeparam>
+        /// <typeparam name="TId">The type of the identifier used by the select items.</typeparam>
+        /// <param name="items">The queryable source of entities.</param>
+        /// <param name="value">An expression that selects the identifier from each entity.</param>
+        /// <param name="description">An expression that selects the display text from each entity.</param>
+        /// <param name="options">An action used to configure the selected and disabled identifier collections.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the projected select items.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="items"/> or <paramref name="options"/> is null.</exception>
+        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Action<SelectItemValues<TId>> options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            SelectItemValues<TId> values = new SelectItemValues<TId>();
+            options(values);
+            return ToSelectItemAsync(items, value, description, values);
         }
 
         #endregion
