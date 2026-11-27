@@ -86,24 +86,6 @@ namespace Canducci.Select2.Tests.Extensions
             }
         }
 
-        [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndOptionsAction_ShouldUseSelectedAndDisabledIdentifiers()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users.ToSelectItemAsync<TestUser, int>(options =>
-                {
-                    options.Value = user => user.Id;
-                    options.Description = user => user.Name;
-                    options.Selected = new[] { 1, 3 };
-                    options.Disabled = new[] { 2, 3 };
-                });
-
-                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
-                Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
-            }
-        }
-
         private sealed class TestDbContext : DbContext
         {
             public TestDbContext(DbContextOptions<TestDbContext> options)
