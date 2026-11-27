@@ -45,121 +45,12 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
-        public async Task ToSelectItemAsync_WithSingleSelectedValue_ShouldSelectMatchingItem()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, 3);
-
-            Assert.False(result[0].Selected);
-            Assert.False(result[1].Selected);
-            Assert.True(result[2].Selected);
-            Assert.False(result[3].Selected);
-        }
-
-        [Fact]
         public async Task ToSelectItemAsync_WithSelectedExpression_ShouldUseExpressionResult()
         {
             List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected);
 
-            Assert.True(result[0].Selected);
-            Assert.False(result[1].Selected);
-            Assert.True(result[2].Selected);
-            Assert.False(result[3].Selected);
+            Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
             Assert.All(result, item => Assert.False(item.Disabled));
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithSelectedAndDisabledExpressions_ShouldUseBothExpressions()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, x => x.IsDisabled);
-
-            Assert.True(result[0].Selected);
-            Assert.False(result[0].Disabled);
-            Assert.False(result[1].Selected);
-            Assert.True(result[1].Disabled);
-            Assert.True(result[2].Selected);
-            Assert.True(result[2].Disabled);
-            Assert.False(result[3].Selected);
-            Assert.False(result[3].Disabled);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObject_ShouldSelectAndDisableMatchingItems()
-        {
-            SelectItemValues<int> options = SelectItemValues<int>.Create(
-                new[] { 1, 3 },
-                new[] { 2, 3 });
-
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options);
-
-            AssertSelectionAndDisabledValues(result);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsAction_ShouldSelectAndDisableMatchingItems()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(
-                x => x.Id,
-                x => x.Name,
-                options =>
-                {
-                    options.SetSelectValues(new[] { 1, 3 });
-                    options.SetDisabledValues(new[] { 2, 3 });
-                });
-
-            AssertSelectionAndDisabledValues(result);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObjectAndNullCollections_ShouldNotSelectOrDisableItems()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(
-                x => x.Id,
-                x => x.Name,
-                new SelectItemValues<int>());
-
-            Assert.All(result, item =>
-            {
-                Assert.False(item.Selected);
-                Assert.False(item.Disabled);
-            });
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsActionWithoutConfiguration_ShouldNotSelectOrDisableItems()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(
-                x => x.Id,
-                x => x.Name,
-                options => { });
-
-            Assert.All(result, item =>
-            {
-                Assert.False(item.Selected);
-                Assert.False(item.Disabled);
-            });
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObjectAndOnlySelectedValues_ShouldNotDisableItems()
-        {
-            SelectItemValues<int> options = SelectItemValues<int>.Create(new[] { 2, 4 });
-
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options);
-
-            Assert.Equal(new[] { false, true, false, true }, result.Select(item => item.Selected));
-            Assert.All(result, item => Assert.False(item.Disabled));
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsActionAndOnlyDisabledValues_ShouldNotSelectItems()
-        {
-            List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(
-                x => x.Id,
-                x => x.Name,
-                options => options.SetDisabledValues(new[] { 2, 3 }));
-
-            Assert.All(result, item => Assert.False(item.Selected));
-            Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
         }
 
         [Fact]
@@ -224,38 +115,6 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
-        public async Task ToSelectItemAsync_WithNullDisabledExpression_ShouldThrowArgumentNullException()
-        {
-            Expression<Func<TestUser, bool>> disabled = null;
-
-            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() => CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, disabled));
-
-            Assert.Equal("disabled", exception.ParamName);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithNullOptionsObject_ShouldThrowArgumentNullException()
-        {
-            SelectItemValues<int> options = null;
-
-            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options));
-
-            Assert.Equal("options", exception.ParamName);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithNullOptionsAction_ShouldThrowArgumentNullException()
-        {
-            Action<SelectItemValues<int>> options = null;
-
-            ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options));
-
-            Assert.Equal("options", exception.ParamName);
-        }
-
-        [Fact]
         public async Task ToSelectItemAsync_WithSynchronousProvider_ShouldThrowInvalidOperationException()
         {
             IQueryable<TestUser> query = CreateUsers().AsQueryable();
@@ -292,12 +151,12 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
-        public async Task ToSelectItemAsync_WithSelectionExpressions_ShouldIncludeThemInProjection()
+        public async Task ToSelectItemAsync_WithSelectedExpression_ShouldIncludeItInProjection()
         {
             IQueryable<TestUser> query = CreateQuery();
             TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
 
-            await query.ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected, x => x.IsDisabled);
+            await query.ToSelectItemAsync(x => x.Id, x => x.Name, x => x.IsSelected);
 
             MethodCallExpression select = Assert.IsAssignableFrom<MethodCallExpression>(provider.LastCreatedExpression);
             UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
@@ -305,62 +164,7 @@ namespace Canducci.Select2.Tests.Extensions
             NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
 
             Assert.Equal("IsSelected", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[2]).Member.Name);
-            Assert.Equal("IsDisabled", Assert.IsAssignableFrom<MemberExpression>(projection.Arguments[3]).Member.Name);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObject_ShouldBuildContainsExpressionsInProjection()
-        {
-            IQueryable<TestUser> query = CreateQuery();
-            TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
-            SelectItemValues<int> options = new SelectItemValues<int>()
-                .SetSelectValues(new[] { 1, 3 })
-                .SetDisabledValues(new[] { 2, 3 });
-
-            await query.ToSelectItemAsync(x => x.Id, x => x.Name, options);
-
-            AssertContainsExpressions(provider.LastCreatedExpression);
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsAction_ShouldBuildContainsExpressionsInProjection()
-        {
-            IQueryable<TestUser> query = CreateQuery();
-            TestAsyncQueryProvider provider = (TestAsyncQueryProvider)query.Provider;
-
-            await query.ToSelectItemAsync(
-                x => x.Id,
-                x => x.Name,
-                options =>
-                {
-                    options.SetSelectValues(new[] { 1, 3 });
-                    options.SetDisabledValues(new[] { 2, 3 });
-                });
-
-            AssertContainsExpressions(provider.LastCreatedExpression);
-        }
-
-        private static void AssertSelectionAndDisabledValues(IReadOnlyList<SelectItem<int>> result)
-        {
-            Assert.True(result[0].Selected);
-            Assert.False(result[0].Disabled);
-            Assert.False(result[1].Selected);
-            Assert.True(result[1].Disabled);
-            Assert.True(result[2].Selected);
-            Assert.True(result[2].Disabled);
-            Assert.False(result[3].Selected);
-            Assert.False(result[3].Disabled);
-        }
-
-        private static void AssertContainsExpressions(Expression expression)
-        {
-            MethodCallExpression select = Assert.IsAssignableFrom<MethodCallExpression>(expression);
-            UnaryExpression quote = Assert.IsType<UnaryExpression>(select.Arguments[1]);
-            LambdaExpression selector = Assert.IsAssignableFrom<LambdaExpression>(quote.Operand);
-            NewExpression projection = Assert.IsType<NewExpression>(selector.Body);
-
-            Assert.Equal(nameof(Enumerable.Contains), Assert.IsAssignableFrom<MethodCallExpression>(projection.Arguments[2]).Method.Name);
-            Assert.Equal(nameof(Enumerable.Contains), Assert.IsAssignableFrom<MethodCallExpression>(projection.Arguments[3]).Method.Name);
+            Assert.Equal(ExpressionType.Constant, projection.Arguments[3].NodeType);
         }
 
         private static string ThrowDescription()

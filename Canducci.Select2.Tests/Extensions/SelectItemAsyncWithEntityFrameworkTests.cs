@@ -46,193 +46,15 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectedValue_ShouldSelectMatchingItem()
+        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectedExpression_ShouldUseExpressionResult()
         {
             using (TestDbContext context = CreateContext())
             {
                 List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, 3);
+                    .ToSelectItemAsync(user => user.Id, user => user.Name, user => user.IsSelected);
 
-                Assert.False(result[0].Selected);
-                Assert.False(result[1].Selected);
-                Assert.True(result[2].Selected);
-                Assert.False(result[3].Selected);
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndSelectionExpressions_ShouldUseBothExpressions()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, user => user.IsSelected, user => user.IsDisabled);
-
-                Assert.True(result[0].Selected);
-                Assert.False(result[0].Disabled);
-                Assert.False(result[1].Selected);
-                Assert.True(result[1].Disabled);
-                Assert.True(result[2].Selected);
-                Assert.True(result[2].Disabled);
-                Assert.False(result[3].Selected);
-                Assert.False(result[3].Disabled);
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndOptionsObject_ShouldSelectAndDisableMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                IEnumerable<int> selectedValues = new[] { 1, 3 };
-                IEnumerable<int> disabledValues = new[] { 2, 3 };
-                SelectItemValues<int> options = SelectItemValues<int>.Create(selectedValues, disabledValues);
-
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, options);
-
-                AssertSelectionAndDisabledValues(result);
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndOptionsAction_ShouldSelectAndDisableMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                IEnumerable<int> selectedValues = new[] { 1, 3 };
-                IEnumerable<int> disabledValues = new[] { 2, 3 };
-
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(
-                        user => user.Id,
-                        user => user.Name,
-                        options =>
-                        {
-                            options.SetSelectValues(selectedValues);
-                            options.SetDisabledValues(disabledValues);
-                        });
-
-                AssertSelectionAndDisabledValues(result);
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObjectAndOnlySelectedValues_ShouldSelectMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                SelectItemValues<int> options = SelectItemValues<int>.Create(new[] { 2, 4 });
-
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, options);
-
-                Assert.Equal(new[] { false, true, false, true }, result.Select(item => item.Selected));
+                Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
                 Assert.All(result, item => Assert.False(item.Disabled));
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObjectAndOnlyDisabledValues_ShouldDisableMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                SelectItemValues<int> options = new SelectItemValues<int>()
-                    .SetDisabledValues(new[] { 1, 4 });
-
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, options);
-
-                Assert.All(result, item => Assert.False(item.Selected));
-                Assert.Equal(new[] { true, false, false, true }, result.Select(item => item.Disabled));
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsObjectAndNullCollections_ShouldLeaveAllItemsUnselectedAndEnabled()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, new SelectItemValues<int>());
-
-                Assert.All(result, item =>
-                {
-                    Assert.False(item.Selected);
-                    Assert.False(item.Disabled);
-                });
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsActionAndOnlySelectedValues_ShouldSelectMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(
-                        user => user.Id,
-                        user => user.Name,
-                        options => options.SetSelectValues(new[] { 1, 4 }));
-
-                Assert.Equal(new[] { true, false, false, true }, result.Select(item => item.Selected));
-                Assert.All(result, item => Assert.False(item.Disabled));
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsActionAndOnlyDisabledValues_ShouldDisableMatchingItems()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(
-                        user => user.Id,
-                        user => user.Name,
-                        options => options.SetDisabledValues(new[] { 2, 3 }));
-
-                Assert.All(result, item => Assert.False(item.Selected));
-                Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithOptionsActionWithoutConfiguration_ShouldLeaveAllItemsUnselectedAndEnabled()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                List<SelectItem<int>> result = await context.Users
-                    .ToSelectItemAsync(user => user.Id, user => user.Name, options => { });
-
-                Assert.All(result, item =>
-                {
-                    Assert.False(item.Selected);
-                    Assert.False(item.Disabled);
-                });
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithNullOptionsObject_ShouldThrowArgumentNullException()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                SelectItemValues<int> options = null;
-
-                await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                    context.Users.ToSelectItemAsync(user => user.Id, user => user.Name, options));
-            }
-        }
-
-        [Fact]
-        public async Task ToSelectItemAsync_WithNullOptionsAction_ShouldThrowArgumentNullException()
-        {
-            using (TestDbContext context = CreateContext())
-            {
-                Action<SelectItemValues<int>> options = null;
-
-                await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                    context.Users.ToSelectItemAsync(user => user.Id, user => user.Name, options));
             }
         }
 
@@ -249,18 +71,6 @@ namespace Canducci.Select2.Tests.Extensions
                 Assert.Equal(new[] { 3, 4 }, result.Select(item => item.Id));
                 Assert.Equal(new[] { "Carlos", "Daniela" }, result.Select(item => item.Text));
             }
-        }
-
-        private static void AssertSelectionAndDisabledValues(IReadOnlyList<SelectItem<int>> result)
-        {
-            Assert.True(result[0].Selected);
-            Assert.False(result[0].Disabled);
-            Assert.False(result[1].Selected);
-            Assert.True(result[1].Disabled);
-            Assert.True(result[2].Selected);
-            Assert.True(result[2].Disabled);
-            Assert.False(result[3].Selected);
-            Assert.False(result[3].Disabled);
         }
 
         private sealed class TestDbContext : DbContext
