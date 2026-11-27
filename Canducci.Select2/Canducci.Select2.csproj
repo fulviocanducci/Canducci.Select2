@@ -3,7 +3,7 @@
         <LangVersion>8.0</LangVersion>
         <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
         <PackageId>Canducci.Select2</PackageId>
-        <PackageVersion>1.0.1</PackageVersion>
+        <PackageVersion>2.0.0</PackageVersion>
         <Title>Canducci.Select2</Title>
         <Authors>Fulvio Canducci</Authors>
         <Company>Canducci</Company>
@@ -15,7 +15,7 @@
         <PackageTags>select2;aspnetcore;mvc;modelbinder;ienumerable;iqueryable;entityframeworkcore;dropdown;ajax</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>images/icon.png</PackageIcon>
-        <PackageReleaseNotes>Version 1.0.1: adds SelectItemValues factory methods for selected and disabled identifiers, updates asynchronous IQueryable usage, and includes unit and EF Core InMemory tests.</PackageReleaseNotes>
+        <PackageReleaseNotes>Version 2.0.0: simplifies asynchronous IQueryable conversion to two overloads: no selection or a Boolean selected expression. Removes identifier collections, disabled expressions, SelectItemValues, and callback-based configuration.</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     </PropertyGroup>
