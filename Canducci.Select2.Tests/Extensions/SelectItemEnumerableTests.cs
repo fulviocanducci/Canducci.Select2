@@ -93,6 +93,23 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public void ToSelectItem_WithIdentifierCollections_ShouldEvaluateValueSelectorOncePerItem()
+        {
+            CountingValueSelector selector = new CountingValueSelector();
+
+            List<SelectItem<int>> result = CreateUsers().ToSelectItem(
+                user => selector.GetId(user),
+                user => user.Name,
+                new[] { 1, 3 },
+                new[] { 2, 3 });
+
+            Assert.Equal(4, result.Count);
+            Assert.Equal(4, selector.Calls);
+            Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+            Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+        }
+
+        [Fact]
         public void ToSelectItem_WithNullIdentifierCollections_ShouldNotSelectOrDisableItems()
         {
             List<SelectItem<int>> result = CreateUsers().ToSelectItem(x => x.Id, x => x.Name, (IEnumerable<int>)null, null);
@@ -249,6 +266,17 @@ namespace Canducci.Select2.Tests.Extensions
         private static string ThrowDescription()
         {
             throw new InvalidOperationException("Description failure.");
+        }
+
+        private sealed class CountingValueSelector
+        {
+            public int Calls { get; private set; }
+
+            public int GetId(TestUser user)
+            {
+                Calls++;
+                return user.Id;
+            }
         }
 
         private sealed class ExpressionHolder<T, TResult>

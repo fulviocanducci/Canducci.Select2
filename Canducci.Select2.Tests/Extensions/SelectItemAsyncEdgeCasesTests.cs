@@ -182,6 +182,61 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
+        public void ToSelectItem_WithSynchronousProvider_ShouldNotRequireAsyncEnumeration()
+        {
+            IQueryable<TestUser> query = CreateUsers().AsQueryable();
+
+            List<SelectItem<int>> result = query.ToSelectItem(
+                user => user.Id,
+                user => user.Name,
+                user => user.IsSelected,
+                user => user.IsDisabled);
+
+            Assert.Equal(new[] { 1, 2, 3, 4 }, result.Select(item => item.Id));
+            Assert.Equal(new[] { true, false, true, false }, result.Select(item => item.Selected));
+            Assert.Equal(new[] { false, true, true, false }, result.Select(item => item.Disabled));
+        }
+
+        [Fact]
+        public void ToSelectItem_ShouldUseOverloadMatchingDeclaredSourceType()
+        {
+            IQueryable<TestUser> querySource = CreateQuery();
+            TestAsyncQueryProvider queryProvider = (TestAsyncQueryProvider)querySource.Provider;
+
+            List<SelectItem<int>> queryResult = querySource.ToSelectItem(user => user.Id, user => user.Name);
+
+            MethodCallExpression queryProjection = Assert.IsAssignableFrom<MethodCallExpression>(queryProvider.LastCreatedExpression);
+            Assert.Equal(nameof(Queryable.Select), queryProjection.Method.Name);
+
+            IQueryable<TestUser> enumerableSource = CreateQuery();
+            TestAsyncQueryProvider enumerableProvider = (TestAsyncQueryProvider)enumerableSource.Provider;
+            IEnumerable<TestUser> enumerableView = enumerableSource;
+
+            List<SelectItem<int>> enumerableResult = enumerableView.ToSelectItem(user => user.Id, user => user.Name);
+
+            Assert.Null(enumerableProvider.LastCreatedExpression);
+            Assert.Equal(queryResult.Select(item => item.Id), enumerableResult.Select(item => item.Id));
+            Assert.Equal(queryResult.Select(item => item.Text), enumerableResult.Select(item => item.Text));
+        }
+
+        [Fact]
+        public void ToSelectItem_WithSynchronousProvider_ShouldSelectByIdentifierAndIdentifierCollections()
+        {
+            IQueryable<TestUser> query = CreateUsers().AsQueryable();
+
+            List<SelectItem<int>> selectedById = query.ToSelectItem(user => user.Id, user => user.Name, 2);
+            List<SelectItem<int>> selectedByCollections = query.ToSelectItem(
+                user => user.Id,
+                user => user.Name,
+                new[] { 1, 3 },
+                new[] { 2, 3 });
+
+            Assert.Equal(new[] { false, true, false, false }, selectedById.Select(item => item.Selected));
+            Assert.Equal(new[] { true, false, true, false }, selectedByCollections.Select(item => item.Selected));
+            Assert.Equal(new[] { false, true, true, false }, selectedByCollections.Select(item => item.Disabled));
+        }
+
+        [Fact]
         public async Task ToSelectItemAsync_WithSynchronousProvider_ShouldThrowForSelectedOverload()
         {
             IQueryable<TestUser> query = CreateUsers().AsQueryable();

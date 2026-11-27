@@ -217,9 +217,9 @@ List<SelectItem<int>> items = users.ToSelectItem(
 
 In this case, Disabled remains false for every item.
 
-## 4. Convert an asynchronous IQueryable query
+## 4. Convert an IQueryable query
 
-Use ToSelectItemAsync when working with an asynchronous query provider, such as Entity Framework Core. The query is asynchronously enumerated and the result is returned as Task<List<SelectItem<TId>>>.
+Use `ToSelectItemAsync` with an asynchronous query provider, such as Entity Framework Core, to enumerate without blocking the calling thread. The result is a `Task<List<SelectItem<TId>>>`.
 
 Keep filtering, ordering and pagination in the query **before** calling ToSelectItemAsync.
 
@@ -295,7 +295,21 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
 
 ToSelectItemAsync requires the source query to implement IAsyncEnumerable. Entity Framework Core queries support asynchronous enumeration. A plain List.AsQueryable() does not provide an asynchronous query source and will throw InvalidOperationException.
 
-If your data is already in memory, use the synchronous ToSelectItem overload instead.
+If your data is already in memory, use the synchronous `IEnumerable<T>` overload instead.
+
+### 4.4. Synchronous IQueryable conversion
+
+Use `ToSelectItem` when you need synchronous enumeration of an `IQueryable<T>`. It adds a projection to the provider and then enumerates synchronously, so filtering, ordering and pagination should still be applied before conversion.
+
+~~~csharp
+List<SelectItem<int>> results = query.ToSelectItem(
+    user => user.Id,
+    user => user.Name,
+    user => user.IsSelected,
+    user => user.IsDisabled);
+~~~
+
+Unlike `ToSelectItemAsync`, this overload does not require the provider to implement `IAsyncEnumerable`. Synchronous database calls block the calling thread; prefer `ToSelectItemAsync` for request-handling code when your provider supports async operations.
 
 ## 5. Available extension methods
 
@@ -313,9 +327,16 @@ If your data is already in memory, use the synchronous ToSelectItem overload ins
 
 | Method | Description |
 | --- | --- |
+| ToSelectItem(value, description) | Synchronously converts query results. |
+| ToSelectItem(value, description, selectedValue) | Selects one item by identifier. |
+| ToSelectItem(value, description, selected) | Synchronously determines selection with a Boolean expression. |
+| ToSelectItem(value, description, selected, disabled) | Synchronously determines both states with Boolean expressions. |
+| ToSelectItem(value, description, selectedValues, disabledValues) | Determines states using identifier collections. |
 | ToSelectItemAsync(value, description) | Asynchronously converts query results. |
-| ToSelectItemAsync(value, description, selected) | Determines selection with a Boolean expression. |\n
-All conversion methods return List<SelectItem<TId>> (or a task containing that list for asynchronous methods).
+| ToSelectItemAsync(value, description, selected) | Asynchronously determines selection with a Boolean expression. |
+| ToSelectItemAsync(value, description, selected, disabled) | Asynchronously determines both states with Boolean expressions. |
+
+All conversion methods return `List<SelectItem<TId>>` (or a task containing that list for asynchronous methods).
 
 ## 6. Package information
 

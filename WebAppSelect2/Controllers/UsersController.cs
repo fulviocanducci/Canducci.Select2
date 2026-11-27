@@ -22,6 +22,10 @@ namespace WebAppSelect2.Controllers
                 .AsNoTracking()
                 .ToSelectItemAsync(x => x.Id, x => x.Name);
 
+            dataContext.Sources
+                .AsNoTracking()
+                .ToSelectItem(x => x.Id, x => x.Name);
+
             //var s = await dataContext
             //    .Sources
             //    .AsNoTracking()
