@@ -80,7 +80,7 @@ namespace Canducci.Select2.Tests.Extensions
         }
 
         [Fact]
-        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndIdentifierCollections_ShouldSelectAndDisableMatchingItems()
+        public async Task ToSelectItemAsync_WithEntityFrameworkInMemoryAndOptionsObject_ShouldSelectAndDisableMatchingItems()
         {
             using (TestDbContext context = CreateContext())
             {
