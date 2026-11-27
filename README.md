@@ -293,10 +293,10 @@ List<SelectItem<int>> items = await query.ToSelectItemAsync(
 
 ### 4.3. Configure conversion with an Action
 
-When you want to configure the value, description, selected identifiers and disabled identifiers in one place, use the options-based overload. The `SelectItemOptions<T, TId>` class requires the `Value` and `Description` expressions. `Selected` and `Disabled` are optional identifier collections.
+When you want to configure the value, description, selected identifiers and disabled identifiers in one place, use the options-based overload. The `SelectItemOptions<T, TId>` class requires the `Value` and `Description` expressions. `Selected` and `Disabled` are optional identifier collections. Because `TId` is only declared inside the options type, specify both generic arguments on the method call (for example, `ToSelectItemAsync<User, int>`).
 
 ~~~csharp
-List<SelectItem<int>> items = await query.ToSelectItemAsync(options =>
+List<SelectItem<int>> items = await query.ToSelectItemAsync<User, int>(options =>
 {
     options.Value = user => user.Id;
     options.Description = user => user.Name;

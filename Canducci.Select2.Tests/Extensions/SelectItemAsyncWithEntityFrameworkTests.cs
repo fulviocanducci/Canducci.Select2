@@ -91,7 +91,7 @@ namespace Canducci.Select2.Tests.Extensions
         {
             using (TestDbContext context = CreateContext())
             {
-                List<SelectItem<int>> result = await context.Users.ToSelectItemAsync(options =>
+                List<SelectItem<int>> result = await context.Users.ToSelectItemAsync<TestUser, int>(options =>
                 {
                     options.Value = user => user.Id;
                     options.Description = user => user.Name;
