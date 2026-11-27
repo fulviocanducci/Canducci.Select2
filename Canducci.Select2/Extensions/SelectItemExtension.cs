@@ -112,7 +112,7 @@ namespace Canducci.Select2.Extensions
             {
                 throw new ArgumentNullException(nameof(configuration.Description), "The Description expression is required.");
             }
-            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, configuration.Value, configuration.Description, configuration.Selected, configuration.Disabled);
+            IQueryable<SelectItem<TId>> query = CreateSelectQueryWithIdentifiers(items, configuration.Value, configuration.Description, configuration.Selected, configuration.Disabled);
             return ToSelectItemAsyncCore(query);
         }
 
@@ -174,7 +174,7 @@ namespace Canducci.Select2.Extensions
             return items.Select(selector);
         }
 
-        private static IQueryable<SelectItem<TId>> CreateSelectQuery<T, TId>(IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues)
+        private static IQueryable<SelectItem<TId>> CreateSelectQueryWithIdentifiers<T, TId>(IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues)
         {
             if (items == null)
             {
