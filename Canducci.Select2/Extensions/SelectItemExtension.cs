@@ -94,6 +94,30 @@ namespace Canducci.Select2.Extensions
 
         #endregion
 
+        #region IQueryable Options
+
+        public static Task<List<SelectItem<TId>>> ToSelectItemAsync<T, TId>(this IQueryable<T> items, Action<SelectItemOptions<T, TId>> options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            SelectItemOptions<T, TId> configuration = new SelectItemOptions<T, TId>();
+            options(configuration);
+            if (configuration.Value == null)
+            {
+                throw new ArgumentNullException(nameof(configuration.Value), "The Value expression is required.");
+            }
+            if (configuration.Description == null)
+            {
+                throw new ArgumentNullException(nameof(configuration.Description), "The Description expression is required.");
+            }
+            IQueryable<SelectItem<TId>> query = CreateSelectQuery(items, configuration.Value, configuration.Description, configuration.Selected, configuration.Disabled);
+            return ToSelectItemAsyncCore(query);
+        }
+
+        #endregion
+
         #region Private Methods
 
         private static List<SelectItem<TId>> ToSelectItemCore<T, TId>(IEnumerable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, Func<T, bool> selected, Func<T, bool> disabled)
@@ -148,6 +172,47 @@ namespace Canducci.Select2.Extensions
             NewExpression projection = Expression.New(constructor, valueBody, descriptionBody, selectedBody, disabledBody);
             Expression<Func<T, SelectItem<TId>>> selector = Expression.Lambda<Func<T, SelectItem<TId>>>(projection, parameter);
             return items.Select(selector);
+        }
+
+        private static IQueryable<SelectItem<TId>> CreateSelectQuery<T, TId>(IQueryable<T> items, Expression<Func<T, TId>> value, Expression<Func<T, string>> description, IEnumerable<TId> selectedValues, IEnumerable<TId> disabledValues)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+            Validate(value, nameof(value));
+            Validate(description, nameof(description));
+            TId[] selected = selectedValues == null ? new TId[0] : selectedValues.ToArray();
+            TId[] disabled = disabledValues == null ? new TId[0] : disabledValues.ToArray();
+            ParameterExpression parameter = Expression.Parameter(typeof(T), "item");
+            Expression valueBody = ReplaceParameter(value.Body, value.Parameters[0], parameter);
+            Expression descriptionBody = ReplaceParameter(description.Body, description.Parameters[0], parameter);
+            Expression selectedBody = CreateContainsExpression(selected, valueBody);
+            Expression disabledBody = CreateContainsExpression(disabled, valueBody);
+            var constructor = typeof(SelectItem<TId>).GetConstructor(new[]
+            {
+                typeof(TId),
+                typeof(string),
+                typeof(bool),
+                typeof(bool)
+            });
+            NewExpression projection = Expression.New(constructor, valueBody, descriptionBody, selectedBody, disabledBody);
+            Expression<Func<T, SelectItem<TId>>> selector = Expression.Lambda<Func<T, SelectItem<TId>>>(projection, parameter);
+            return items.Select(selector);
+        }
+
+        private static Expression CreateContainsExpression<TId>(TId[] values, Expression value)
+        {
+            if (values.Length == 0)
+            {
+                return Expression.Constant(false);
+            }
+            return Expression.Call(
+                typeof(Enumerable),
+                nameof(Enumerable.Contains),
+                new[] { typeof(TId) },
+                Expression.Constant(values),
+                value);
         }
 
         private static Expression ReplaceParameter(Expression expression, ParameterExpression source, ParameterExpression target)
