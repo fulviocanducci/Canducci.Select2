@@ -1,4 +1,3 @@
-using System.Linq;
 using Canducci.Select2;
 using Xunit;
 
