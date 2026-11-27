@@ -16,7 +16,9 @@ namespace WebAppSelect2.Controllers
         public async Task<ActionResult> Find(ISelectTerm selectTerm)
         {
             var listOfUser = await userApi.GetUsersAsync(selectTerm.Q);
-            return Ok(new { results = listOfUser.Results.ToSelectItem(x => x.Id, x => x.Name) });
+            var a = Enumerable.Empty<int>();
+            var b = Enumerable.Empty<int>();
+            return Ok(new { results = listOfUser.Results.ToSelectItem(x => x.Id, x => x.Name, a, b) });
         }
     }
 }
