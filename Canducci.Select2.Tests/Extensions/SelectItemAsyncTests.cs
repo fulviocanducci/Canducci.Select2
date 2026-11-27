@@ -85,9 +85,9 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public async Task ToSelectItemAsync_WithOptionsObject_ShouldSelectAndDisableMatchingItems()
         {
-            SelectItemValues<int> options = new SelectItemValues<int>()
-                .SetSelectValues(new[] { 1, 3 })
-                .SetDisabledValues(new[] { 2, 3 });
+            SelectItemValues<int> options = SelectItemValues<int>.Create(
+                new[] { 1, 3 },
+                new[] { 2, 3 });
 
             List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options);
 
@@ -142,8 +142,7 @@ namespace Canducci.Select2.Tests.Extensions
         [Fact]
         public async Task ToSelectItemAsync_WithOptionsObjectAndOnlySelectedValues_ShouldNotDisableItems()
         {
-            SelectItemValues<int> options = new SelectItemValues<int>()
-                .SetSelectValues(new[] { 2, 4 });
+            SelectItemValues<int> options = SelectItemValues<int>.Create(new[] { 2, 4 });
 
             List<SelectItem<int>> result = await CreateQuery().ToSelectItemAsync(x => x.Id, x => x.Name, options);
 
